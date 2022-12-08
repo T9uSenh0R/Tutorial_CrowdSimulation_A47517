@@ -1,27 +1,52 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Flock : MonoBehaviour
-{
+public class Flock : MonoBehaviour {
 
     public FlockManager myManager;
     float speed;
-    // Start is called before the first frame update
-    void Start()
-    {
+    bool turning = false;
+
+    void Start() {
+
         speed = Random.Range(myManager.minSpeed, myManager.maxSpeed);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        ApplyRules();
-        transform.Translate(0, 0, Time.deltaTime * speed);
+    void Update() {
+
+        Bounds b = new Bounds(myManager.transform.position, myManager.swimLimits * 2.0f);
+
+        if (!b.Contains(transform.position)) {
+
+            turning = true;
+        } else {
+
+            turning = false;
+        }
+
+        if (turning) {
+
+            Vector3 direction = myManager.transform.position - transform.position;
+            transform.rotation = Quaternion.Slerp(transform.rotation,
+                                                  Quaternion.LookRotation(direction),
+                                                  myManager.rotationSpeed * Time.deltaTime);
+        } else {
+
+            if (Random.Range(0.0f, 100.0f) < 10.0f) {
+
+                speed = Random.Range(myManager.minSpeed, myManager.maxSpeed);
+            }
+
+            if (Random.Range(0.0f, 100.0f) < 20.0f) {
+
+                ApplyRules();
+            }
+        }
+
+        transform.Translate(0.0f, 0.0f, Time.deltaTime * speed);
     }
 
-    void ApplyRules()
-    {
+    void ApplyRules() {
+
         GameObject[] gos;
         gos = myManager.allFish;
 
@@ -31,18 +56,18 @@ public class Flock : MonoBehaviour
         float nDistance;
         int groupSize = 0;
 
-        foreach (GameObject go in gos)
-        {
-            if(go != this.gameObject)
-            {
+        foreach (GameObject go in gos) {
+
+            if (go != this.gameObject) {
+
                 nDistance = Vector3.Distance(go.transform.position, this.transform.position);
-                if(nDistance <= myManager.neighbourDistance)
-                {
+                if (nDistance <= myManager.neighbourDistance) {
+
                     vcentre += go.transform.position;
                     groupSize++;
 
-                    if(nDistance < 1.0f)
-                    {
+                    if (nDistance < 1.0f) {
+
                         vavoid = vavoid + (this.transform.position - go.transform.position);
                     }
 
@@ -52,14 +77,18 @@ public class Flock : MonoBehaviour
             }
         }
 
-        if(groupSize > 0)
-        {
-            vcentre = vcentre / groupSize;
+        if (groupSize > 0) {
+
+            vcentre = vcentre / groupSize + (myManager.goalPos - this.transform.position);
             speed = gSpeed / groupSize;
 
             Vector3 direction = (vcentre + vavoid) - transform.position;
-            if (direction != Vector3.zero)
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), myManager.rotationSpeed * Time.deltaTime);
+            if (direction != Vector3.zero) {
+
+                transform.rotation = Quaternion.Slerp(transform.rotation,
+                                                      Quaternion.LookRotation(direction),
+                                                      myManager.rotationSpeed * Time.deltaTime);
+            }
         }
     }
 }
