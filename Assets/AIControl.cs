@@ -13,7 +13,11 @@ public class AIControl : MonoBehaviour {
         agent = this.GetComponent<UnityEngine.AI.NavMeshAgent>();
         agent.SetDestination(goalLocations[Random.Range(0, goalLocations.Length)].transform.position);
         anim = this.GetComponent<Animator>();
+        anim.SetFloat("woffset", Random.Range(0, 1));
         anim.SetTrigger("isWalking");
+        float sm = Random.Range(0.1f, 2f);
+        anim.SetFloat("speedMult", Random.Range(0.5f, 2));
+        agent.speed *= sm;
     }
 
     // Update is called once per frame
